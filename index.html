@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programación Lineal - Sillas y Mesas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .problem-setup {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .excel-table th, .excel-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .excel-table th {
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        .variable-cell {
+            background: #e3f2fd !important;
+            font-weight: bold;
+        }
+        .formula-cell {
+            background: #fff3e0 !important;
+            font-style: italic;
+        }
+        .constraint-cell {
+            background: #f3e5f5 !important;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100px;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .solve-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: transform 0.3s ease;
+        }
+        .solve-button:hover {
+            transform: scale(1.05);
+        }
+        .result {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .steps {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .graph-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: #333;
+        }
+        canvas {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪑 Optimización de Producción 🪑</h1>
+        
+        <div class="problem-setup">
+            <h2>Problema:</h2>
+            <p><strong>Función Objetivo:</strong> Maximizar Z = 12x + 20y</p>
+            <p><strong>Restricciones:</strong></p>
+            <ul>
+                <li>2x + 3y ≤ 120</li>
+                <li>x + y ≤ 45</li>
+                <li>x ≥ 0, y ≥ 0</li>
+            </ul>
+            <p>Donde: x = sillas, y = mesas</p>
+        </div>
+
+        <h2>Tabla de Excel Simulada</h2>
+        <table class="excel-table">
+            <thead>
+                <tr>
+                    <th>Celda</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+                    <th>Fórmula</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>B2</td>
+                    <td>Sillas (x)</td>
+                    <td class="variable-cell" id="sillas">30</td>
+                    <td>Variable de decisión</td>
+                </tr>
+                <tr>
+                    <td>C2</td>
+                    <td>Mesas (y)</td>
+                    <td class="variable-cell" id="mesas">15</td>
+                    <td>Variable de decisión</td>
+                </tr>
+                <tr>
+                    <td>D2</td>
+                    <td>Ganancia Total</td>
+                    <td class="formula-cell" id="ganancia">660</td>
+                    <td>=12*B2+20*C2</td>
+                </tr>
+                <tr>
+                    <td>B5</td>
+                    <td>Restricción 1</td>
+                    <td class="constraint-cell" id="rest1">105</td>
+                    <td>=2*B2+3*C2</td>
+                </tr>
+                <tr>
+                    <td>B6</td>
+                    <td>Restricción 2</td>
+                    <td class="constraint-cell" id="rest2">45</td>
+                    <td>=B2+C2</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="input-group">
+            <label for="sillas-input">Sillas (x):</label>
+            <input type="number" id="sillas-input" value="30" min="0" step="1">
+        </div>
+        <div class="input-group">
+            <label for="mesas-input">Mesas (y):</label>
+            <input type="number" id="mesas-input" value="15" min="0" step="1">
+        </div>
+
+        <button class="solve-button" onclick="solveOptimal()">🔍 Resolver Óptimo</button>
+
+        <div class="result" id="result">
+            <h3>Solución Actual:</h3>
+            <p>Sillas: <span id="result-sillas">30</span></p>
+            <p>Mesas: <span id="result-mesas">15</span></p>
+            <p>Ganancia: $<span id="result-ganancia">660</span></p>
+            <p>Estado: <span id="status">Factible</span></p>
+        </div>
+
+        <div class="graph-container">
+            <h3>Gráfico de Restricciones</h3>
+            <canvas id="graph" width="600" height="400"></canvas>
+        </div>
+
+        <div class="steps">
+            <h2>Pasos para resolver en Excel:</h2>
+            <div class="step">
+                <strong>Paso 1:</strong> Configura las variables de decisión en celdas B2 (sillas) y C2 (mesas)
+            </div>
+            <div class="step">
+                <strong>Paso 2:</strong> En D2, escribe la función objetivo: =12*B2+20*C2
+            </div>
+            <div class="step">
+                <strong>Paso 3:</strong> Configura las restricciones:
+                <ul>
+                    <li>B5: =2*B2+3*C2 (≤ 120)</li>
+                    <li>B6: =B2+C2 (≤ 45)</li>
+                </ul>
+            </div>
+            <div class="step">
+                <strong>Paso 4:</strong> Ve a Datos → Solver
+            </div>
+            <div class="step">
+                <strong>Paso 5:</strong> Configura Solver:
+                <ul>
+                    <li>Objetivo: D2 (Maximizar)</li>
+                    <li>Variables: B2:C2</li>
+                    <li>Restricciones: B5≤120, B6≤45, B2≥0, C2≥0</li>
+                </ul>
+            </div>
+            <div class="step">
+                <strong>Paso 6:</strong> Haz clic en "Resolver"
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateValues() {
+            const sillas = parseFloat(document.getElementById('sillas-input').value) || 0;
+            const mesas = parseFloat(document.getElementById('mesas-input').value) || 0;
+            
+            document.getElementById('sillas').textContent = sillas;
+            document.getElementById('mesas').textContent = mesas;
+            
+            const ganancia = 12 * sillas + 20 * mesas;
+            document.getElementById('ganancia').textContent = ganancia;
+            
+            const rest1 = 2 * sillas + 3 * mesas;
+            const rest2 = sillas + mesas;
+            
+            document.getElementById('rest1').textContent = rest1;
+            document.getElementById('rest2').textContent = rest2;
+            
+            document.getElementById('result-sillas').textContent = sillas;
+            document.getElementById('result-mesas').textContent = mesas;
+            document.getElementById('result-ganancia').textContent = ganancia;
+            
+            // Check feasibility
+            let status = "Factible";
+            if (rest1 > 120 || rest2 > 45 || sillas < 0 || mesas < 0) {
+                status = "No factible";
+            }
+            document.getElementById('status').textContent = status;
+            document.getElementById('status').style.color = status === "Factible" ? "green" : "red";
+            
+            drawGraph();
+        }
+        
+        function solveOptimal() {
+            // Método gráfico para encontrar la solución óptima
+            let maxGanancia = 0;
+            let optimalSillas = 0;
+            let optimalMesas = 0;
+            
+            // Evaluar vértices de la región factible
+            const vertices = [
+                [0, 0],
+                [0, 40],  // Intersección de y = 40 (de 3y ≤ 120) y x = 0
+                [30, 15], // Intersección de 2x + 3y = 120 y x + y = 45
+                [45, 0]   // Intersección de x + y = 45 y y = 0
+            ];
+            
+            vertices.forEach(([x, y]) => {
+                // Verificar si el punto es factible
+                if (x >= 0 && y >= 0 && 2*x + 3*y <= 120 && x + y <= 45) {
+                    const ganancia = 12*x + 20*y;
+                    if (ganancia > maxGanancia) {
+                        maxGanancia = ganancia;
+                        optimalSillas = x;
+                        optimalMesas = y;
+                    }
+                }
+            });
+            
+            document.getElementById('sillas-input').value = optimalSillas;
+            document.getElementById('mesas-input').value = optimalMesas;
+            updateValues();
+            
+            // Highlight optimal solution
+            document.getElementById('result').style.background = 'rgba(76, 175, 80, 0.4)';
+            document.getElementById('result').innerHTML = `
+                <h3>🎯 Solución Óptima Encontrada:</h3>
+                <p><strong>Sillas:</strong> ${optimalSillas}</p>
+                <p><strong>Mesas:</strong> ${optimalMesas}</p>
+                <p><strong>Ganancia Máxima:</strong> $${maxGanancia}</p>
+                <p><strong>Estado:</strong> <span style="color: gold;">ÓPTIMO</span></p>
+            `;
+        }
+        
+        function drawGraph() {
+            const canvas = document.getElementById('graph');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Set up coordinate system
+            const width = canvas.width;
+            const height = canvas.height;
+            const maxX = 60;
+            const maxY = 50;
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50);
+            ctx.lineTo(width - 20, height - 50);
+            ctx.moveTo(50, height - 50);
+            ctx.lineTo(50, 20);
+            ctx.stroke();
+            
+            // Draw grid
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 6; i++) {
+                const x = 50 + (i * (width - 70) / 6);
+                const y = height - 50 - (i * (height - 70) / 5);
+                ctx.beginPath();
+                ctx.moveTo(x, height - 50);
+                ctx.lineTo(x, 20);
+                ctx.stroke();
+                if (i <= 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(50, y);
+                    ctx.lineTo(width - 20, y);
+                    ctx.stroke();
+                }
+            }
+            
+            // Draw constraints
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            
+            // 2x + 3y ≤ 120
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50 - ((40 * (height - 70)) / 50)); // y = 40 when x = 0
+            ctx.lineTo(50 + ((60 * (width - 70)) / 60), height - 50); // x = 60 when y = 0
+            ctx.stroke();
+            
+            // x + y ≤ 45
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50 - ((45 * (height - 70)) / 50)); // y = 45 when x = 0
+            ctx.lineTo(50 + ((45 * (width - 70)) / 60), height - 50); // x = 45 when y = 0
+            ctx.stroke();
+            
+            // Draw feasible region
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50); // Origin
+            ctx.lineTo(50, height - 50 - ((40 * (height - 70)) / 50)); // (0, 40)
+            ctx.lineTo(50 + ((30 * (width - 70)) / 60), height - 50 - ((15 * (height - 70)) / 50)); // (30, 15)
+            ctx.lineTo(50 + ((45 * (width - 70)) / 60), height - 50); // (45, 0)
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw current point
+            const sillas = parseFloat(document.getElementById('sillas-input').value) || 0;
+            const mesas = parseFloat(document.getElementById('mesas-input').value) || 0;
+            
+            const pointX = 50 + ((sillas * (width - 70)) / 60);
+            const pointY = height - 50 - ((mesas * (height - 70)) / 50);
+            
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(pointX, pointY, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.fillText('Sillas (x)', width - 100, height - 30);
+            ctx.fillText('Mesas (y)', 10, 30);
+            ctx.fillText('2x + 3y ≤ 120', width - 150, 50);
+            ctx.fillText('x + y ≤ 45', width - 150, 70);
+        }
+        
+        // Event listeners
+        document.getElementById('sillas-input').addEventListener('input', updateValues);
+        document.getElementById('mesas-input').addEventListener('input', updateValues);
+        
+        // Initial draw
+        updateValues();
+    </script>
+</body>
+</html>
