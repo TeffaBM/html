@@ -1,69 +1,736 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Programación Lineal Editable</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      min-height: 100vh;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programación Lineal Editable</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #FFD700;
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 10px;
+        }
+        .input-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-group label {
+            min-width: 120px;
+            font-weight: bold;
+            color: #E0E0E0;
+        }
+        .input-group input, .input-group select {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            transform: scale(1.02);
+        }
+        .constraint-row {
+            display: grid;
+            grid-template-columns: 80px 20px 80px 20px 80px 100px 80px 40px;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .constraint-row input, .constraint-row select {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .excel-table th, .excel-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .excel-table th {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .variable-cell {
+            background: #e3f2fd !important;
+            font-weight: bold;
+        }
+        .formula-cell {
+            background: #fff3e0 !important;
+            font-style: italic;
+        }
+        .constraint-cell {
+            background: #f3e5f5 !important;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .result {
+            background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(67, 160, 71, 0.3));
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+        }
+        .graph-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            color: #333;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        canvas {
+            width: 100%;
+            max-width: 700px;
+            height: 500px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto;
+        }
+        .variable-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .add-constraint-btn {
+            background: linear-gradient(45deg, #FFA726, #FF9800);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .add-constraint-btn:hover {
+            transform: scale(1.05);
+        }
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .remove-btn:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
+        }
+        .steps-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎯 Solver de Programación Lineal</h1>
-    <div id="restricciones-container"></div>
-    <button onclick="calcular()">Calcular</button>
-    <div id="resultado"></div>
-  </div>
+    <div class="container">
+        <h1>🎯 Solver de Programación Lineal Personalizable</h1>
+        
+        <div class="setup-grid">
+            <div class="section">
+                <h3>📊 Función Objetivo</h3>
+                <div class="input-group">
+                    <label>Tipo:</label>
+                    <select id="objetivo-tipo">
+                        <option value="max">Maximizar</option>
+                        <option value="min">Minimizar</option>
+                    </select>
+                </div>
+                <div id="objetivo-coeficientes">
+                    <div class="input-group">
+                        <label>Coef. X:</label>
+                        <input type="number" id="coef-x" value="12" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Coef. Y:</label>
+                        <input type="number" id="coef-y" value="20" step="0.1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🔧 Variables de Decisión</h3>
+                <div class="variable-inputs">
+                    <div class="input-group">
+                        <label>X (actual):</label>
+                        <input type="number" id="var-x" value="30" min="0" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Y (actual):</label>
+                        <input type="number" id="var-y" value="15" min="0" step="0.1">
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <script>
-    // Ejemplo simple para ilustrar la corrección
-    let constraints = [
-      { id: 0, coefX: 2, coefY: 3, operador: '<=', limite: 120 },
-      { id: 1, coefX: 1, coefY: 1, operador: '<=', limite: 45 }
-    ];
+        <div class="section">
+            <h3>📏 Restricciones</h3>
+            <div id="restricciones-container">
+                <!-- Las restricciones se agregan aquí dinámicamente -->
+            </div>
+            <button class="add-constraint-btn" id="add-constraint-btn">+ Agregar Restricción</button>
+        </div>
 
-    function calcular() {
-      const x = 10;
-      const y = 20;
-      const coefX = 12;
-      const coefY = 20;
-      const objetivo = coefX * x + coefY * y;
+        <div class="button-group">
+            <button class="btn btn-primary" id="calculate-btn">🔄 Calcular Actual</button>
+            <button class="btn btn-success" id="solve-btn">🎯 Resolver Óptimo</button>
+            <button class="btn btn-secondary" id="reset-btn">🔄 Resetear</button>
+        </div>
 
-      let feasible = true;
-      let violatedConstraints = [];
+        <h2>📋 Tabla Excel Simulada</h2>
+        <table class="excel-table" id="excel-table">
+            <thead>
+                <tr>
+                    <th>Celda</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+                    <th>Fórmula Excel</th>
+                </tr>
+            </thead>
+            <tbody id="excel-body">
+                <!-- Se genera dinámicamente -->
+            </tbody>
+        </table>
 
-      constraints.forEach((constraint) => {
-        const value = constraint.coefX * x + constraint.coefY * y;
-        const element = document.getElementById(`excel-rest${constraint.id}`); // ← CORREGIDO
+        <div class="result" id="result">
+            <!-- Resultados se muestran aquí -->
+        </div>
 
-        let satisfied = false;
-        switch (constraint.operador) {
-          case '<=': satisfied = value <= constraint.limite + 0.001; break;
-          case '>=': satisfied = value >= constraint.limite - 0.001; break;
-          case '=': satisfied = Math.abs(value - constraint.limite) < 0.001; break;
+        <div class="graph-container">
+            <h3>📈 Gráfico de Restricciones</h3>
+            <canvas id="graph" width="700" height="500"></canvas>
+        </div>
+
+        <div class="steps-container">
+            <h2>📚 Cómo implementar en Excel:</h2>
+            <div id="excel-steps">
+                <!-- Los pasos se generan dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let constraints = [];
+        let constraintCounter = 0;
+
+        // Inicializar restricciones por defecto
+        function initializeConstraints() {
+            constraints = [
+                { id: 0, coefX: 2, coefY: 3, operador: '<=', limite: 120 },
+                { id: 1, coefX: 1, coefY: 1, operador: '<=', limite: 45 }
+            ];
+            constraintCounter = 2;
+            renderConstraints();
         }
 
-        if (!satisfied) {
-          violatedConstraints.push(`Restricción ${constraints.indexOf(constraint) + 1}`); // ← CORREGIDO
-          feasible = false;
+        // Renderizar restricciones en el DOM
+        function renderConstraints() {
+            const container = document.getElementById('restricciones-container');
+            container.innerHTML = '';
+            
+            constraints.forEach(constraint => {
+                const div = document.createElement('div');
+                div.className = 'constraint-row';
+                div.innerHTML = `
+                    <input type="number" value="${constraint.coefX}" step="0.1" placeholder="Coef X" data-field="coefX" data-id="${constraint.id}">
+                    <span>X +</span>
+                    <input type="number" value="${constraint.coefY}" step="0.1" placeholder="Coef Y" data-field="coefY" data-id="${constraint.id}">
+                    <span>Y</span>
+                    <select data-field="operador" data-id="${constraint.id}">
+                        <option value="<=" ${constraint.operador === '<=' ? 'selected' : ''}>&le;</option>
+                        <option value=">=" ${constraint.operador === '>=' ? 'selected' : ''}>&ge;</option>
+                        <option value="=" ${constraint.operador === '=' ? 'selected' : ''}>=</option>
+                    </select>
+                    <input type="number" value="${constraint.limite}" step="0.1" placeholder="Límite" data-field="limite" data-id="${constraint.id}">
+                    <button class="remove-btn" data-remove="${constraint.id}">×</button>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Agregar event listeners a los nuevos elementos
+            container.querySelectorAll('input, select').forEach(element => {
+                element.addEventListener('input', updateConstraint);
+                element.addEventListener('change', updateConstraint);
+            });
+            
+            container.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.remove);
+                    removeConstraint(id);
+                });
+            });
         }
-      });
 
-      document.getElementById("resultado").innerHTML = `
-        <p><strong>Objetivo:</strong> ${objetivo}</p>
-        <p><strong>Estado:</strong> ${feasible ? '✅ Factible' : '❌ No Factible'}</p>
-        ${!feasible ? `<p>Violaciones: ${violatedConstraints.join(', ')}</p>` : ''}
-      `;
-    }
-  </script>
-</body>
-</html>
+        // Actualizar una restricción
+        function updateConstraint(event) {
+            const field = event.target.dataset.field;
+            const id = parseInt(event.target.dataset.id);
+            const value = event.target.value;
+            
+            const constraint = constraints.find(c => c.id === id);
+            if (constraint) {
+                if (field === 'coefX' || field === 'coefY' || field === 'limite') {
+                    constraint[field] = parseFloat(value) || 0;
+                } else {
+                    constraint[field] = value;
+                }
+                updateExcelTable();
+                calculateCurrent();
+            }
+        }
+
+        // Agregar nueva restricción
+        function addConstraint() {
+            const newConstraint = {
+                id: constraintCounter,
+                coefX: 1,
+                coefY: 1,
+                operador: '<=',
+                limite: 10
+            };
+            constraints.push(newConstraint);
+            constraintCounter++;
+            renderConstraints();
+            updateExcelTable();
+            calculateCurrent();
+        }
+
+        // Eliminar restricción
+        function removeConstraint(id) {
+            if (constraints.length > 1) {
+                constraints = constraints.filter(c => c.id !== id);
+                renderConstraints();
+                updateExcelTable();
+                calculateCurrent();
+            }
+        }
+
+        // Actualizar tabla Excel
+        function updateExcelTable() {
+            const tbody = document.getElementById('excel-body');
+            const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
+            const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
+            
+            let html = `
+                <tr>
+                    <td>B2</td>
+                    <td>Variable X</td>
+                    <td class="variable-cell" id="excel-x">${document.getElementById('var-x').value}</td>
+                    <td>Variable de decisión</td>
+                </tr>
+                <tr>
+                    <td>C2</td>
+                    <td>Variable Y</td>
+                    <td class="variable-cell" id="excel-y">${document.getElementById('var-y').value}</td>
+                    <td>Variable de decisión</td>
+                </tr>
+                <tr>
+                    <td>D2</td>
+                    <td>Función Objetivo</td>
+                    <td class="formula-cell" id="excel-objetivo">0</td>
+                    <td>=${coefX}*B2+${coefY}*C2</td>
+                </tr>
+            `;
+            
+            constraints.forEach((constraint, index) => {
+                const row = index + 5;
+                html += `
+                    <tr>
+                        <td>B${row}</td>
+                        <td>Restricción ${index + 1}</td>
+                        <td class="constraint-cell" id="excel-rest${constraint.id}">0</td>
+                        <td>=${constraint.coefX}*B2+${constraint.coefY}*C2</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // Calcular valores actuales
+        function calculateCurrent() {
+            const x = parseFloat(document.getElementById('var-x').value) || 0;
+            const y = parseFloat(document.getElementById('var-y').value) || 0;
+            const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
+            const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
+            
+            // Actualizar tabla Excel
+            document.getElementById('excel-x').textContent = x;
+            document.getElementById('excel-y').textContent = y;
+            
+            const objetivo = coefX * x + coefY * y;
+            document.getElementById('excel-objetivo').textContent = objetivo.toFixed(2);
+            
+            let feasible = true;
+            let violatedConstraints = [];
+            
+            constraints.forEach(constraint => {
+                const value = constraint.coefX * x + constraint.coefY * y;
+                const element = document.getElementById(`excel-rest${constraint.id}`);
+                if (element) {
+                    element.textContent = value.toFixed(2);
+                }
+                
+                let satisfied = false;
+                switch (constraint.operador) {
+                    case '<=':
+                        satisfied = value <= constraint.limite + 0.001;
+                        break;
+                    case '>=':
+                        satisfied = value >= constraint.limite - 0.001;
+                        break;
+                    case '=':
+                        satisfied = Math.abs(value - constraint.limite) < 0.001;
+                        break;
+                }
+                
+                if (!satisfied) {
+                    feasible = false;
+                    violatedConstraints.push(`Restricción ${constraints.indexOf(constraint) + 1}`);
+                }
+            });
+            
+            // Verificar no negatividad
+            if (x < -0.001 || y < -0.001) {
+                feasible = false;
+                violatedConstraints.push('No negatividad');
+            }
+            
+            // Mostrar resultado
+            const tipoObjetivo = document.getElementById('objetivo-tipo').value;
+            const result = document.getElementById('result');
+            result.innerHTML = `
+                <h3>📊 Resultado Actual:</h3>
+                <p><strong>X:</strong> ${x}</p>
+                <p><strong>Y:</strong> ${y}</p>
+                <p><strong>Función Objetivo:</strong> ${objetivo.toFixed(2)} (${tipoObjetivo === 'max' ? 'Maximizar' : 'Minimizar'})</p>
+                <p><strong>Estado:</strong> <span style="color: ${feasible ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                    ${feasible ? '✅ FACTIBLE' : '❌ NO FACTIBLE'}
+                </span></p>
+                ${!feasible ? `<p><strong>Restricciones violadas:</strong> ${violatedConstraints.join(', ')}</p>` : ''}
+            `;
+            
+            updateExcelSteps();
+            drawGraph();
+        }
+
+        // Resolver óptimo
+        function solveOptimal() {
+            const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
+            const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
+            const isMaximize = document.getElementById('objetivo-tipo').value === 'max';
+            
+            let bestValue = isMaximize ? -Infinity : Infinity;
+            let bestX = 0;
+            let bestY = 0;
+            
+            // Generar puntos candidatos
+            const candidates = [[0, 0]];
+            
+            // Intersecciones con ejes
+            constraints.forEach(constraint => {
+                if (Math.abs(constraint.coefX) > 0.001) {
+                    const x = constraint.limite / constraint.coefX;
+                    if (x >= 0) candidates.push([x, 0]);
+                }
+                
+                if (Math.abs(constraint.coefY) > 0.001) {
+                    const y = constraint.limite / constraint.coefY;
+                    if (y >= 0) candidates.push([0, y]);
+                }
+            });
+            
+            // Intersecciones entre restricciones
+            for (let i = 0; i < constraints.length; i++) {
+                for (let j = i + 1; j < constraints.length; j++) {
+                    const c1 = constraints[i];
+                    const c2 = constraints[j];
+                    
+                    const det = c1.coefX * c2.coefY - c1.coefY * c2.coefX;
+                    if (Math.abs(det) > 0.001) {
+                        const x = (c1.limite * c2.coefY - c1.coefY * c2.limite) / det;
+                        const y = (c1.coefX * c2.limite - c1.limite * c2.coefX) / det;
+                        if (x >= -0.001 && y >= -0.001) {
+                            candidates.push([x, y]);
+                        }
+                    }
+                }
+            }
+            
+            // Evaluar candidatos
+            candidates.forEach(([x, y]) => {
+                if (x >= -0.001 && y >= -0.001) {
+                    let feasible = true;
+                    constraints.forEach(constraint => {
+                        const value = constraint.coefX * x + constraint.coefY * y;
+                        switch (constraint.operador) {
+                            case '<=':
+                                if (value > constraint.limite + 0.001) feasible = false;
+                                break;
+                            case '>=':
+                                if (value < constraint.limite - 0.001) feasible = false;
+                                break;
+                            case '=':
+                                if (Math.abs(value - constraint.limite) > 0.001) feasible = false;
+                                break;
+                        }
+                    });
+                    
+                    if (feasible) {
+                        const objectiveValue = coefX * x + coefY * y;
+                        if ((isMaximize && objectiveValue > bestValue) || 
+                            (!isMaximize && objectiveValue < bestValue)) {
+                            bestValue = objectiveValue;
+                            bestX = Math.max(0, x);
+                            bestY = Math.max(0, y);
+                        }
+                    }
+                }
+            });
+            
+            // Actualizar variables
+            document.getElementById('var-x').value = bestX.toFixed(2);
+            document.getElementById('var-y').value = bestY.toFixed(2);
+            
+            calculateCurrent();
+            
+            // Destacar resultado óptimo
+            const result = document.getElementById('result');
+            result.style.background = 'linear-gradient(45deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.3))';
+            result.innerHTML = `
+                <h3>🎯 SOLUCIÓN ÓPTIMA ENCONTRADA:</h3>
+                <p><strong>X óptimo:</strong> ${bestX.toFixed(2)}</p>
+                <p><strong>Y óptimo:</strong> ${bestY.toFixed(2)}</p>
+                <p><strong>Valor óptimo:</strong> ${bestValue.toFixed(2)}</p>
+                <p><strong>Tipo:</strong> ${isMaximize ? 'MÁXIMO' : 'MÍNIMO'}</p>
+                <p style="color: #FFD700; font-weight: bold; font-size: 1.2em;">⭐ SOLUCIÓN ÓPTIMA ⭐</p>
+            `;
+        }
+
+        // Resetear problema
+        function resetProblem() {
+            document.getElementById('objetivo-tipo').value = 'max';
+            document.getElementById('coef-x').value = '12';
+            document.getElementById('coef-y').value = '20';
+            document.getElementById('var-x').value = '30';
+            document.getElementById('var-y').value = '15';
+            
+            initializeConstraints();
+            updateExcelTable();
+            calculateCurrent();
+        }
+
+        // Actualizar pasos de Excel
+        function updateExcelSteps() {
+            const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
+            const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
+            const objetivo = document.getElementById('objetivo-tipo').value;
+            
+            const stepsContainer = document.getElementById('excel-steps');
+            let html = `
+                <div class="step">
+                    <strong>Paso 1:</strong> En Excel, configura las variables de decisión:
+                    <br>• B2: Variable X (valor inicial: cualquier número)
+                    <br>• C2: Variable Y (valor inicial: cualquier número)
+                </div>
+                <div class="step">
+                    <strong>Paso 2:</strong> En D2, escribe la función objetivo:
+                    <br><code>=<strong>${coefX}</strong>*B2+<strong>${coefY}</strong>*C2</code>
+                </div>
+            `;
+            
+            constraints.forEach((constraint, index) => {
+                const row = index + 5;
+                html += `
+                    <div class="step">
+                        <strong>Paso ${index + 3}:</strong> En B${row}, escribe la restricción ${index + 1}:
+                        <br><code>=<strong>${constraint.coefX}</strong>*B2+<strong>${constraint.coefY}</strong>*C2</code>
+                        <br>(Debe ser <strong>${constraint.operador} ${constraint.limite}</strong>)
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="step">
+                    <strong>Paso Final:</strong> Ve a <strong>Datos → Solver</strong> y configura:
+                    <br>• <strong>Objetivo:</strong> D2 (${objetivo === 'max' ? 'Maximizar' : 'Minimizar'})
+                    <br>• <strong>Variables:</strong> B2:C2
+                    <br>• <strong>Restricciones:</strong>
+            `;
+            
+            constraints.forEach((constraint, index) => {
+                const row = index + 5;
+                html += `<br>&nbsp;&nbsp;- B${row} ${constraint.operador} ${constraint.limite}`;
+            });
+            
+            html += `
+                    <br>&nbsp;&nbsp;- B2 ≥ 0
+                    <br>&nbsp;&nbsp;- C2 ≥ 0
+                </div>
+            `;
+            
+            stepsContainer.innerHTML = html;
+        }
+
+        // Dibujar gráfico
+        function drawGraph() {
+            const canvas = document.getElementById('graph');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const maxX = 80;
+            const maxY = 60;
+            const padding = 60;
+            
+            // Dibujar ejes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - 20, height - padding);
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(padding, 20);
+            ctx.stroke();
+            
+            // Dibujar grid
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            const gridSteps = 8;
+            for (let i = 0; i <= gridSteps; i++) {
+                const x = padding + (i * (width - padding - 20) / gridSteps);
+                const y = height - padding - (i * (height - padding - 20) / gridSteps);
+                
+                ctx.beginPath();
+                ctx.moveTo(x, height - padding);
+                ctx.lineTo(x, 20);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - 20, y);
+                ctx.stroke();
+            }
+            
+            // Dibujar restricciones
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffe
