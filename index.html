@@ -3,38 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Corrección fondo</title>
+  <title>Programación Lineal Editable</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #007BFF 0%, #004C99 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-    }
-    .container {
-      max-width: 900px;
-      margin: 50px auto;
-      padding: 30px;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-    h1 {
-      text-align: center;
-    }
-    p {
-      text-align: center;
+      min-height: 100vh;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>✅ ¡Todo está funcionando bien!</h1>
-    <p>Este contenedor ya se muestra con el fondo azul degradado.</p>
-    <p>Desde aquí puedes pegar todo tu contenido dinámico (inputs, tablas, etc).</p>
+    <h1>🎯 Solver de Programación Lineal</h1>
+    <div id="restricciones-container"></div>
+    <button onclick="calcular()">Calcular</button>
+    <div id="resultado"></div>
   </div>
+
+  <script>
+    // Ejemplo simple para ilustrar la corrección
+    let constraints = [
+      { id: 0, coefX: 2, coefY: 3, operador: '<=', limite: 120 },
+      { id: 1, coefX: 1, coefY: 1, operador: '<=', limite: 45 }
+    ];
+
+    function calcular() {
+      const x = 10;
+      const y = 20;
+      const coefX = 12;
+      const coefY = 20;
+      const objetivo = coefX * x + coefY * y;
+
+      let feasible = true;
+      let violatedConstraints = [];
+
+      constraints.forEach((constraint) => {
+        const value = constraint.coefX * x + constraint.coefY * y;
+        const element = document.getElementById(`excel-rest${constraint.id}`); // ← CORREGIDO
+
+        let satisfied = false;
+        switch (constraint.operador) {
+          case '<=': satisfied = value <= constraint.limite + 0.001; break;
+          case '>=': satisfied = value >= constraint.limite - 0.001; break;
+          case '=': satisfied = Math.abs(value - constraint.limite) < 0.001; break;
+        }
+
+        if (!satisfied) {
+          violatedConstraints.push(`Restricción ${constraints.indexOf(constraint) + 1}`); // ← CORREGIDO
+          feasible = false;
+        }
+      });
+
+      document.getElementById("resultado").innerHTML = `
+        <p><strong>Objetivo:</strong> ${objetivo}</p>
+        <p><strong>Estado:</strong> ${feasible ? '✅ Factible' : '❌ No Factible'}</p>
+        ${!feasible ? `<p>Violaciones: ${violatedConstraints.join(', ')}</p>` : ''}
+      `;
+    }
+  </script>
 </body>
 </html>
