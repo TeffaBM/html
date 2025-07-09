@@ -3,255 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Programación Lineal Editable</title>
+  <title>Corrección fondo</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
       background: linear-gradient(135deg, #007BFF 0%, #004C99 100%);
       color: white;
-      min-height: 100vh;
     }
     .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
+      max-width: 900px;
+      margin: 50px auto;
       padding: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
     h1 {
       text-align: center;
-      margin-bottom: 30px;
-      font-size: 2.8em;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-      background: linear-gradient(45deg, #FFD700, #FFA500);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
-    .section {
-      margin: 20px 0;
-    }
-    .input-group {
-      margin: 10px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .input-group label {
-      min-width: 100px;
-    }
-    input, select {
-      padding: 8px;
-      border-radius: 5px;
-      border: none;
-      flex: 1;
-    }
-    .constraint-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin: 10px 0;
-      flex-wrap: wrap;
-    }
-    .remove-btn {
-      background: red;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    .btn {
-      padding: 10px 20px;
-      margin: 10px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-    }
-    .btn-primary { background: #28a745; color: white; }
-    .btn-secondary { background: #ffc107; color: black; }
-    .btn-danger { background: #dc3545; color: white; }
-    #result {
-      background: white;
-      color: #333;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
+    p {
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎯 Solver de Programación Lineal</h1>
-
-    <div class="section">
-      <h3>📊 Función Objetivo</h3>
-      <div class="input-group">
-        <label for="objetivo-tipo">Tipo:</label>
-        <select id="objetivo-tipo">
-          <option value="max">Maximizar</option>
-          <option value="min">Minimizar</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label>Coef. X:</label>
-        <input type="number" id="coef-x" value="12" />
-      </div>
-      <div class="input-group">
-        <label>Coef. Y:</label>
-        <input type="number" id="coef-y" value="20" />
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>🔧 Variables</h3>
-      <div class="input-group">
-        <label>Valor X:</label>
-        <input type="number" id="var-x" value="30" />
-      </div>
-      <div class="input-group">
-        <label>Valor Y:</label>
-        <input type="number" id="var-y" value="15" />
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>📏 Restricciones</h3>
-      <div id="restricciones-container"></div>
-      <button class="btn btn-secondary" onclick="addConstraint()">+ Agregar Restricción</button>
-    </div>
-
-    <div class="section">
-      <button class="btn btn-primary" onclick="calculateCurrent()">Calcular</button>
-      <button class="btn btn-danger" onclick="resetProblem()">Resetear</button>
-    </div>
-
-    <div id="result"></div>
+    <h1>✅ ¡Todo está funcionando bien!</h1>
+    <p>Este contenedor ya se muestra con el fondo azul degradado.</p>
+    <p>Desde aquí puedes pegar todo tu contenido dinámico (inputs, tablas, etc).</p>
   </div>
-
-  <script>
-    let constraints = [];
-    let constraintCounter = 0;
-
-    function initializeConstraints() {
-      constraints = [
-        { id: 0, coefX: 2, coefY: 3, operador: '<=', limite: 120 },
-        { id: 1, coefX: 1, coefY: 1, operador: '<=', limite: 45 }
-      ];
-      constraintCounter = 2;
-      renderConstraints();
-    }
-
-    function renderConstraints() {
-      const container = document.getElementById('restricciones-container');
-      container.innerHTML = '';
-
-      constraints.forEach(constraint => {
-        const div = document.createElement('div');
-        div.className = 'constraint-row';
-        div.innerHTML = `
-          <input type="number" value="${constraint.coefX}" data-id="${constraint.id}" data-field="coefX" />
-          <span>X</span>
-          <input type="number" value="${constraint.coefY}" data-id="${constraint.id}" data-field="coefY" />
-          <span>Y</span>
-          <select data-id="${constraint.id}" data-field="operador">
-            <option value="<=" ${constraint.operador === '<=' ? 'selected' : ''}>&le;</option>
-            <option value=">=" ${constraint.operador === '>=' ? 'selected' : ''}>&ge;</option>
-            <option value="=" ${constraint.operador === '=' ? 'selected' : ''}>=</option>
-          </select>
-          <input type="number" value="${constraint.limite}" data-id="${constraint.id}" data-field="limite" />
-          <button class="remove-btn" onclick="removeConstraint(${constraint.id})">×</button>
-        `;
-        container.appendChild(div);
-      });
-
-      container.querySelectorAll('input, select').forEach(el =>
-        el.addEventListener('change', updateConstraint)
-      );
-    }
-
-    function updateConstraint(e) {
-      const field = e.target.dataset.field;
-      const id = parseInt(e.target.dataset.id);
-      const value = e.target.value;
-      const constraint = constraints.find(c => c.id === id);
-      if (constraint) {
-        if (field === 'coefX' || field === 'coefY' || field === 'limite') {
-          constraint[field] = parseFloat(value) || 0;
-        } else {
-          constraint[field] = value;
-        }
-        calculateCurrent();
-      }
-    }
-
-    function addConstraint() {
-      constraints.push({ id: constraintCounter++, coefX: 1, coefY: 1, operador: '<=', limite: 10 });
-      renderConstraints();
-    }
-
-    function removeConstraint(id) {
-      if (constraints.length > 1) {
-        constraints = constraints.filter(c => c.id !== id);
-        renderConstraints();
-        calculateCurrent();
-      }
-    }
-
-    function calculateCurrent() {
-      const x = parseFloat(document.getElementById('var-x').value) || 0;
-      const y = parseFloat(document.getElementById('var-y').value) || 0;
-      const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
-      const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
-
-      const objetivo = coefX * x + coefY * y;
-      let feasible = true;
-      let violated = [];
-
-      constraints.forEach((c, i) => {
-        const val = c.coefX * x + c.coefY * y;
-        let valid = false;
-        switch (c.operador) {
-          case '<=': valid = val <= c.limite + 0.001; break;
-          case '>=': valid = val >= c.limite - 0.001; break;
-          case '=':  valid = Math.abs(val - c.limite) < 0.001; break;
-        }
-        if (!valid) {
-          feasible = false;
-          violated.push(`Restricción ${i + 1}`);
-        }
-      });
-
-      if (x < 0 || y < 0) {
-        feasible = false;
-        violated.push("No negatividad");
-      }
-
-      document.getElementById('result').innerHTML = `
-        <h3>Resultado:</h3>
-        <p>X = ${x}</p>
-        <p>Y = ${y}</p>
-        <p>Función Objetivo = ${objetivo.toFixed(2)}</p>
-        <p><strong>${feasible ? '✅ Factible' : '❌ No Factible'}</strong></p>
-        ${!feasible ? `<p>Violaciones: ${violated.join(', ')}</p>` : ''}
-      `;
-    }
-
-    function resetProblem() {
-      document.getElementById('coef-x').value = 12;
-      document.getElementById('coef-y').value = 20;
-      document.getElementById('var-x').value = 30;
-      document.getElementById('var-y').value = 15;
-      initializeConstraints();
-      calculateCurrent();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeConstraints();
-      calculateCurrent();
-    });
-  </script>
 </body>
 </html>
