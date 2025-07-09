@@ -77,7 +77,7 @@
         }
         .constraint-row {
             display: grid;
-            grid-template-columns: 80px 80px 20px 80px 80px 20px 100px 80px;
+            grid-template-columns: 80px 20px 80px 20px 80px 100px 80px;
             gap: 10px;
             align-items: center;
             margin: 10px 0;
@@ -198,11 +198,13 @@
             background: linear-gradient(45deg, #FFA726, #FF9800);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 15px 25px;
+            border-radius: 25px;
             cursor: pointer;
-            margin: 10px 0;
+            margin: 15px 0;
             transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
         }
         .add-constraint-btn:hover {
             transform: scale(1.05);
@@ -211,10 +213,16 @@
             background: #f44336;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 8px 12px;
             border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .remove-btn:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
         }
         .steps-container {
             background: rgba(255, 255, 255, 0.1);
@@ -275,40 +283,15 @@
         <div class="section">
             <h3>📏 Restricciones</h3>
             <div id="restricciones-container">
-                <div class="constraint-row" data-index="0">
-                    <input type="number" class="coef-x" value="2" step="0.1" placeholder="Coef X">
-                    <span>X +</span>
-                    <input type="number" class="coef-y" value="3" step="0.1" placeholder="Coef Y">
-                    <span>Y</span>
-                    <select class="operador">
-                        <option value="<=">&le;</option>
-                        <option value=">=">&ge;</option>
-                        <option value="=">=</option>
-                    </select>
-                    <input type="number" class="limite" value="120" step="0.1" placeholder="Límite">
-                    <button class="remove-btn" onclick="removeConstraint(0)">×</button>
-                </div>
-                <div class="constraint-row" data-index="1">
-                    <input type="number" class="coef-x" value="1" step="0.1" placeholder="Coef X">
-                    <span>X +</span>
-                    <input type="number" class="coef-y" value="1" step="0.1" placeholder="Coef Y">
-                    <span>Y</span>
-                    <select class="operador">
-                        <option value="<=">&le;</option>
-                        <option value=">=">&ge;</option>
-                        <option value="=">=</option>
-                    </select>
-                    <input type="number" class="limite" value="45" step="0.1" placeholder="Límite">
-                    <button class="remove-btn" onclick="removeConstraint(1)">×</button>
-                </div>
+                <!-- Las restricciones se agregan aquí dinámicamente -->
             </div>
-            <button class="add-constraint-btn" onclick="addConstraint()">+ Agregar Restricción</button>
+            <button class="add-constraint-btn" id="add-constraint-btn">+ Agregar Restricción</button>
         </div>
 
         <div class="button-group">
-            <button class="btn btn-primary" onclick="calculateCurrent()">🔄 Calcular Actual</button>
-            <button class="btn btn-success" onclick="solveOptimal()">🎯 Resolver Óptimo</button>
-            <button class="btn btn-secondary" onclick="resetProblem()">🔄 Resetear</button>
+            <button class="btn btn-primary" id="calculate-btn">🔄 Calcular Actual</button>
+            <button class="btn btn-success" id="solve-btn">🎯 Resolver Óptimo</button>
+            <button class="btn btn-secondary" id="reset-btn">🔄 Resetear</button>
         </div>
 
         <h2>📋 Tabla Excel Simulada</h2>
@@ -344,75 +327,107 @@
     </div>
 
     <script>
-        let constraintCounter = 2;
-        
-        function addConstraint() {
+        // Variables globales
+        let constraints = [];
+        let constraintCounter = 0;
+
+        // Inicializar restricciones por defecto
+        function initializeConstraints() {
+            constraints = [
+                { id: 0, coefX: 2, coefY: 3, operador: '<=', limite: 120 },
+                { id: 1, coefX: 1, coefY: 1, operador: '<=', limite: 45 }
+            ];
+            constraintCounter = 2;
+            renderConstraints();
+        }
+
+        // Renderizar restricciones en el DOM
+        function renderConstraints() {
             const container = document.getElementById('restricciones-container');
-            const newConstraint = document.createElement('div');
-            newConstraint.className = 'constraint-row';
-            newConstraint.setAttribute('data-index', constraintCounter);
+            container.innerHTML = '';
             
-            newConstraint.innerHTML = `
-                <input type="number" class="coef-x" value="1" step="0.1" placeholder="Coef X">
-                <span>X +</span>
-                <input type="number" class="coef-y" value="1" step="0.1" placeholder="Coef Y">
-                <span>Y</span>
-                <select class="operador">
-                    <option value="<=">&le;</option>
-                    <option value=">=">&ge;</option>
-                    <option value="=">=</option>
-                </select>
-                <input type="number" class="limite" value="10" step="0.1" placeholder="Límite">
-                <button class="remove-btn" onclick="removeConstraint(${constraintCounter})">×</button>
-            `;
-            
-            container.appendChild(newConstraint);
-            
-            // Agregar event listeners a los nuevos elementos
-            newConstraint.querySelectorAll('input, select').forEach(element => {
-                element.addEventListener('input', function() {
-                    updateExcelTable();
-                    calculateCurrent();
-                });
-                element.addEventListener('change', function() {
-                    updateExcelTable();
-                    calculateCurrent();
-                });
+            constraints.forEach(constraint => {
+                const div = document.createElement('div');
+                div.className = 'constraint-row';
+                div.innerHTML = `
+                    <input type="number" value="${constraint.coefX}" step="0.1" placeholder="Coef X" data-field="coefX" data-id="${constraint.id}">
+                    <span>X +</span>
+                    <input type="number" value="${constraint.coefY}" step="0.1" placeholder="Coef Y" data-field="coefY" data-id="${constraint.id}">
+                    <span>Y</span>
+                    <select data-field="operador" data-id="${constraint.id}">
+                        <option value="<=" ${constraint.operador === '<=' ? 'selected' : ''}>&le;</option>
+                        <option value=">=" ${constraint.operador === '>=' ? 'selected' : ''}>&ge;</option>
+                        <option value="=" ${constraint.operador === '=' ? 'selected' : ''}>=</option>
+                    </select>
+                    <input type="number" value="${constraint.limite}" step="0.1" placeholder="Límite" data-field="limite" data-id="${constraint.id}">
+                    <button class="remove-btn" data-remove="${constraint.id}">×</button>
+                `;
+                container.appendChild(div);
             });
             
-            constraintCounter++;
-            updateExcelTable();
-            calculateCurrent();
+            // Agregar event listeners a los nuevos elementos
+            container.querySelectorAll('input, select').forEach(element => {
+                element.addEventListener('input', updateConstraint);
+                element.addEventListener('change', updateConstraint);
+            });
+            
+            container.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.remove);
+                    removeConstraint(id);
+                });
+            });
         }
-        
-        function removeConstraint(index) {
-            const constraint = document.querySelector([data-index="${index}"]);
-            if (constraint && document.querySelectorAll('.constraint-row').length > 1) {
-                constraint.remove();
+
+        // Actualizar una restricción
+        function updateConstraint(event) {
+            const field = event.target.dataset.field;
+            const id = parseInt(event.target.dataset.id);
+            const value = event.target.value;
+            
+            const constraint = constraints.find(c => c.id === id);
+            if (constraint) {
+                if (field === 'coefX' || field === 'coefY' || field === 'limite') {
+                    constraint[field] = parseFloat(value) || 0;
+                } else {
+                    constraint[field] = value;
+                }
                 updateExcelTable();
                 calculateCurrent();
             }
         }
-        
-        function getConstraints() {
-            const constraints = [];
-            document.querySelectorAll('.constraint-row').forEach(row => {
-                const coefX = parseFloat(row.querySelector('.coef-x').value) || 0;
-                const coefY = parseFloat(row.querySelector('.coef-y').value) || 0;
-                const operador = row.querySelector('.operador').value;
-                const limite = parseFloat(row.querySelector('.limite').value) || 0;
-                
-                constraints.push({ coefX, coefY, operador, limite });
-            });
-            return constraints;
+
+        // Agregar nueva restricción
+        function addConstraint() {
+            const newConstraint = {
+                id: constraintCounter,
+                coefX: 1,
+                coefY: 1,
+                operador: '<=',
+                limite: 10
+            };
+            constraints.push(newConstraint);
+            constraintCounter++;
+            renderConstraints();
+            updateExcelTable();
+            calculateCurrent();
         }
-        
+
+        // Eliminar restricción
+        function removeConstraint(id) {
+            if (constraints.length > 1) {
+                constraints = constraints.filter(c => c.id !== id);
+                renderConstraints();
+                updateExcelTable();
+                calculateCurrent();
+            }
+        }
+
+        // Actualizar tabla Excel
         function updateExcelTable() {
             const tbody = document.getElementById('excel-body');
             const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
             const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
-            const objetivo = document.getElementById('objetivo-tipo').value;
-            const constraints = getConstraints();
             
             let html = `
                 <tr>
@@ -441,7 +456,7 @@
                     <tr>
                         <td>B${row}</td>
                         <td>Restricción ${index + 1}</td>
-                        <td class="constraint-cell" id="excel-rest${index}">0</td>
+                        <td class="constraint-cell" id="excel-rest${constraint.id}">0</td>
                         <td>=${constraint.coefX}*B2+${constraint.coefY}*C2</td>
                     </tr>
                 `;
@@ -449,13 +464,13 @@
             
             tbody.innerHTML = html;
         }
-        
+
+        // Calcular valores actuales
         function calculateCurrent() {
             const x = parseFloat(document.getElementById('var-x').value) || 0;
             const y = parseFloat(document.getElementById('var-y').value) || 0;
             const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
             const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
-            const constraints = getConstraints();
             
             // Actualizar tabla Excel
             document.getElementById('excel-x').textContent = x;
@@ -467,14 +482,17 @@
             let feasible = true;
             let violatedConstraints = [];
             
-            constraints.forEach((constraint, index) => {
+            constraints.forEach(constraint => {
                 const value = constraint.coefX * x + constraint.coefY * y;
-                document.getElementById(excel-rest${index}).textContent = value.toFixed(2);
+                const element = document.getElementById(excel-rest${constraint.id});
+                if (element) {
+                    element.textContent = value.toFixed(2);
+                }
                 
                 let satisfied = false;
                 switch (constraint.operador) {
                     case '<=':
-                        satisfied = value <= constraint.limite + 0.001; // tolerancia numérica
+                        satisfied = value <= constraint.limite + 0.001;
                         break;
                     case '>=':
                         satisfied = value >= constraint.limite - 0.001;
@@ -486,7 +504,7 @@
                 
                 if (!satisfied) {
                     feasible = false;
-                    violatedConstraints.push(index + 1);
+                    violatedConstraints.push(Restricción ${constraints.indexOf(constraint) + 1});
                 }
             });
             
@@ -513,30 +531,27 @@
             updateExcelSteps();
             drawGraph();
         }
-        
+
+        // Resolver óptimo
         function solveOptimal() {
-            const constraints = getConstraints();
             const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
             const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
             const isMaximize = document.getElementById('objetivo-tipo').value === 'max';
             
-            // Método simplex simplificado para 2 variables
             let bestValue = isMaximize ? -Infinity : Infinity;
             let bestX = 0;
             let bestY = 0;
             
-            // Generar puntos candidatos (vértices de la región factible)
-            const candidates = [[0, 0]]; // Origen siempre es candidato
+            // Generar puntos candidatos
+            const candidates = [[0, 0]];
             
             // Intersecciones con ejes
             constraints.forEach(constraint => {
-                // Intersección con eje X (y = 0)
                 if (Math.abs(constraint.coefX) > 0.001) {
                     const x = constraint.limite / constraint.coefX;
                     if (x >= 0) candidates.push([x, 0]);
                 }
                 
-                // Intersección con eje Y (x = 0)
                 if (Math.abs(constraint.coefY) > 0.001) {
                     const y = constraint.limite / constraint.coefY;
                     if (y >= 0) candidates.push([0, y]);
@@ -549,7 +564,6 @@
                     const c1 = constraints[i];
                     const c2 = constraints[j];
                     
-                    // Resolver sistema 2x2
                     const det = c1.coefX * c2.coefY - c1.coefY * c2.coefX;
                     if (Math.abs(det) > 0.001) {
                         const x = (c1.limite * c2.coefY - c1.coefY * c2.limite) / det;
@@ -564,7 +578,6 @@
             // Evaluar candidatos
             candidates.forEach(([x, y]) => {
                 if (x >= -0.001 && y >= -0.001) {
-                    // Verificar factibilidad
                     let feasible = true;
                     constraints.forEach(constraint => {
                         const value = constraint.coefX * x + constraint.coefY * y;
@@ -611,7 +624,8 @@
                 <p style="color: #FFD700; font-weight: bold; font-size: 1.2em;">⭐ SOLUCIÓN ÓPTIMA ⭐</p>
             `;
         }
-        
+
+        // Resetear problema
         function resetProblem() {
             document.getElementById('objetivo-tipo').value = 'max';
             document.getElementById('coef-x').value = '12';
@@ -619,47 +633,16 @@
             document.getElementById('var-x').value = '30';
             document.getElementById('var-y').value = '15';
             
-            // Resetear restricciones a las originales
-            const container = document.getElementById('restricciones-container');
-            container.innerHTML = `
-                <div class="constraint-row" data-index="0">
-                    <input type="number" class="coef-x" value="2" step="0.1" placeholder="Coef X">
-                    <span>X +</span>
-                    <input type="number" class="coef-y" value="3" step="0.1" placeholder="Coef Y">
-                    <span>Y</span>
-                    <select class="operador">
-                        <option value="<=">&le;</option>
-                        <option value=">=">&ge;</option>
-                        <option value="=">=</option>
-                    </select>
-                    <input type="number" class="limite" value="120" step="0.1" placeholder="Límite">
-                    <button class="remove-btn" onclick="removeConstraint(0)">×</button>
-                </div>
-                <div class="constraint-row" data-index="1">
-                    <input type="number" class="coef-x" value="1" step="0.1" placeholder="Coef X">
-                    <span>X +</span>
-                    <input type="number" class="coef-y" value="1" step="0.1" placeholder="Coef Y">
-                    <span>Y</span>
-                    <select class="operador">
-                        <option value="<=">&le;</option>
-                        <option value=">=">&ge;</option>
-                        <option value="=">=</option>
-                    </select>
-                    <input type="number" class="limite" value="45" step="0.1" placeholder="Límite">
-                    <button class="remove-btn" onclick="removeConstraint(1)">×</button>
-                </div>
-            `;
-            
-            constraintCounter = 2;
+            initializeConstraints();
             updateExcelTable();
             calculateCurrent();
         }
-        
+
+        // Actualizar pasos de Excel
         function updateExcelSteps() {
             const coefX = parseFloat(document.getElementById('coef-x').value) || 0;
             const coefY = parseFloat(document.getElementById('coef-y').value) || 0;
             const objetivo = document.getElementById('objetivo-tipo').value;
-            const constraints = getConstraints();
             
             const stepsContainer = document.getElementById('excel-steps');
             let html = `
@@ -706,12 +689,12 @@
             
             stepsContainer.innerHTML = html;
         }
-        
+
+        // Dibujar gráfico
         function drawGraph() {
             const canvas = document.getElementById('graph');
             const ctx = canvas.getContext('2d');
             
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             const width = canvas.width;
@@ -720,7 +703,7 @@
             const maxY = 60;
             const padding = 60;
             
-            // Draw axes
+            // Dibujar ejes
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -730,7 +713,7 @@
             ctx.lineTo(padding, 20);
             ctx.stroke();
             
-            // Draw grid
+            // Dibujar grid
             ctx.strokeStyle = '#eee';
             ctx.lineWidth = 1;
             const gridSteps = 8;
@@ -743,16 +726,13 @@
                 ctx.lineTo(x, 20);
                 ctx.stroke();
                 
-                if (i <= gridSteps) {
-                    ctx.beginPath();
-                    ctx.moveTo(padding, y);
-                    ctx.lineTo(width - 20, y);
-                    ctx.stroke();
-                }
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - 20, y);
+                ctx.stroke();
             }
             
-            // Draw constraints
-            const constraints = getConstraints();
+            // Dibujar restricciones
             const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
             
             constraints.forEach((constraint, index) => {
@@ -762,15 +742,12 @@
                 if (constraint.coefX !== 0 || constraint.coefY !== 0) {
                     ctx.beginPath();
                     
-                    // Calculate line points
                     let x1, y1, x2, y2;
                     
                     if (Math.abs(constraint.coefY) > 0.001) {
-                        // y-intercept (x = 0)
                         y1 = constraint.limite / constraint.coefY;
                         x1 = 0;
                         
-                        // x-intercept (y = 0)
                         if (Math.abs(constraint.coefX) > 0.001) {
                             x2 = constraint.limite / constraint.coefX;
                             y2 = 0;
@@ -779,13 +756,11 @@
                             y2 = y1;
                         }
                     } else if (Math.abs(constraint.coefX) > 0.001) {
-                        // Vertical line
                         x1 = x2 = constraint.limite / constraint.coefX;
                         y1 = 0;
                         y2 = maxY;
                     }
                     
-                    // Convert to canvas coordinates
                     const canvasX1 = padding + (x1 * (width - padding - 20) / maxX);
                     const canvasY1 = height - padding - (y1 * (height - padding - 20) / maxY);
                     const canvasX2 = padding + (x2 * (width - padding - 20) / maxX);
@@ -803,7 +778,7 @@
                 }
             });
             
-            // Draw current point
+            // Dibujar punto actual
             const x = parseFloat(document.getElementById('var-x').value) || 0;
             const y = parseFloat(document.getElementById('var-y').value) || 0;
             
@@ -816,19 +791,18 @@
                 ctx.arc(pointX, pointY, 8, 0, 2 * Math.PI);
                 ctx.fill();
                 
-                // Label for current point
                 ctx.fillStyle = '#333';
                 ctx.font = '12px Arial';
                 ctx.fillText((${x}, ${y}), pointX + 10, pointY - 10);
             }
             
-            // Labels
+            // Etiquetas
             ctx.fillStyle = '#333';
             ctx.font = '14px Arial';
             ctx.fillText('X', width - 40, height - 30);
             ctx.fillText('Y', 20, 30);
             
-            // Draw constraint labels
+            // Etiquetas de restricciones
             constraints.forEach((constraint, index) => {
                 const color = colors[index % colors.length];
                 ctx.fillStyle = color;
@@ -837,18 +811,35 @@
                 ctx.fillText(label, width - 200, 40 + index * 20);
             });
         }
-        
-        // Event listeners
-        function addEventListeners() {
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Función objetivo
             document.getElementById('objetivo-tipo').addEventListener('change', calculateCurrent);
             document.getElementById('coef-x').addEventListener('input', calculateCurrent);
             document.getElementById('coef-y').addEventListener('input', calculateCurrent);
+            
+            // Variables
             document.getElementById('var-x').addEventListener('input', calculateCurrent);
             document.getElementById('var-y').addEventListener('input', calculateCurrent);
             
-            // Add listeners to existing constraints
-            document.querySelectorAll('.constraint-row input, .constraint-row select').forEach(element => {
-                element.addEventListener('input', calculateCurrent);
-                element.addEventListener('change', calculateCurrent);
-            });
+            // Botones
+            document.getElementById('add-constraint-btn').addEventListener('click', addConstraint);
+            document.getElementById('calculate-btn').addEventListener('click', calculateCurrent);
+            document.getElementById('solve-btn').addEventListener('click', solveOptimal);
+            document.getElementById('reset-btn').addEventListener('click', resetProblem);
         }
+
+        // Inicializar aplicación
+        function initApp() {
+            initializeConstraints();
+            setupEventListeners();
+            updateExcelTable();
+            calculateCurrent();
+        }
+
+        // Ejecutar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
